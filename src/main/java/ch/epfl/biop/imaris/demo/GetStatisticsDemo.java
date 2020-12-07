@@ -67,7 +67,5 @@ public class GetStatisticsDemo {
                 .selectTime(1)
                 .get();
         stats6.show("Using StatsQuery Directly");
-
-
     }
 }
