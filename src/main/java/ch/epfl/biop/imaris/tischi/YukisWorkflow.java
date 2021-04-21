@@ -1,8 +1,10 @@
 package ch.epfl.biop.imaris.tischi;
 
 import Imaris.Error;
+import Imaris.ISpotsPrx;
 import Imaris.ISurfacesPrx;
 import ch.epfl.biop.imaris.EasyXT;
+import ch.epfl.biop.imaris.SpotsDetector;
 import ch.epfl.biop.imaris.SurfacesDetector;
 import ch.epfl.biop.imaris.demo.FreshStartWithIJAndBIOPImsSample;
 
@@ -50,7 +52,8 @@ public class YukisWorkflow
     {
         EasyXT.openImage(new File("/Users/tischer/Desktop/yuki/e0519_spinning_disc_test3_1_130_decon_crop_frame1_frame2.ims"));
 
-        // Segment Nuclei in Channel 0
+        // Segment Nuclei in Channel 0 (1)
+        //
         ISurfacesPrx nuclei = SurfacesDetector.Channel(0)
                 .setSmoothingWidth(0.5)
                 .enableAutomaticLowerThreshold()
@@ -58,13 +61,12 @@ public class YukisWorkflow
                 //.setUpperThreshold(255.0)
                 .setName("Nuclei")
                 .setColor(new Integer[]{0,0,255})
-                .setSurfaceFilter( "\"Volume\" above 8 um^3" )
-                .setSurfaceFilter( "\"Distance to Image Border XYZ Img=1\" above 0.001 um"  )
+                .setSurfaceFilter( "\"Volume\" above 8 um^3 \"Distance to Image Border XYZ Img=1\" above 0.001 um" )
                 .build()
                 .detect();
         EasyXT.getImaris().GetSurpassScene().AddChild(nuclei,0);
 
-        // Segment Nucleoli in Channel 2
+        // Segment Nucleoli in Channel 2 (3)
         //
         ISurfacesPrx nucleoli = SurfacesDetector.Channel(2)
                 .setSmoothingWidth(0.13)
@@ -73,29 +75,27 @@ public class YukisWorkflow
                 //.setUpperThreshold(255.0)
                 .setName("Nucleoli")
                 .setColor(new Integer[]{0,255,0})
-                .setSurfaceFilter( "\"Volume\" above 1 um^3" )
-                .setSurfaceFilter( "\"Distance to Image Border XYZ Img=1\" above 0.001 um"  )
+                .setSurfaceFilter( "\"Volume\" above 1 um^3 \"Distance to Image Border XYZ Img=1\" above 0.001 um" )
                 //.setSurfaceFilter(  )
                 .build()
                 .detect();
         EasyXT.getImaris().GetSurpassScene().AddChild(nucleoli,0);
 
-        /**
-         *
-         * [Algorithm]
-         *   Enable Region Of Interest = false
-         *   Enable Region Growing = false
-         *   Enable Tracking = false
-         *   Enable Classify = false
-         *   Enable Region Growing = false
-         *   Enable Shortest Distance = true
-         * [Source Channel]
-         *   Source Channel Index = 2
-         *   Estimated Diameter = 0.650 µm
-         *   Background Subtraction = true
-         * [Filter Spots]
-         *   "Quality" above automatic threshold
-         */
+
+        // TODO: Add the distance transform of the nucleoli
+        //   - Add distance measurements
+
+        // Segment FBL Particles in Channel 1 (2)
+        //
+        ISpotsPrx spots = SpotsDetector.Channel( 1 )
+                .setName( "Spots" )
+                .setDiameter( 0.65 )
+                .setFilter( "\"Quality\" above automatic threshold" )
+                .isSubtractBackground( true )
+                .setColor( new Integer[]{ 255, 0, 0 } )
+                .build()
+                .detect();
+        EasyXT.getImaris().GetSurpassScene().AddChild(spots,0);
 
 
     }
